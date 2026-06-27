@@ -1,0 +1,175 @@
+# tape-six-invariant
+
+> A zero-dependency library of `assert`-style invariant checks that **materialize** into real [tape-six](https://github.com/uhop/tape-six) assertions when a tape-six run exercises the code, and are inert (or a configurable behavior) in production. The library never imports tape-six; the two coordinate purely through a versioned global slot, `Symbol.for('tape6.invariant.host.v1')`.
+
+- Embed invariants in production / library code; they become counted test assertions only when something is listening.
+- Zero runtime dependencies; works in Node, Deno, Bun, and browsers.
+- ES modules, no build step, hand-written TypeScript definitions (`asserts cond` narrowing on `check`).
+- Configurable production behavior via a single generic setter (not an env-flag menu).
+- Designed to be build-time strippable (unassert-style) — `check` stays statically matchable.
+
+## The idea
+
+An invariant check embedded in production or library code:
+
+```js
+import check from 'tape-six-invariant';
+
+export function transfer(from, to, amount) {
+  check(amount > 0, 'amount must be positive');
+  check(from.currency === to.currency, 'currencies must match');
+}
+```
+
+- **Under a tape-six run** (the code is exercised by a test): each `check()` becomes a counted assertion on the _current_ test — in the plan, in TAP output, with source location pointing at the `check()` call site.
+- **In production** (no tape-six): a configurable behavior. Default **inert**. Overridable to throw, warn, defer to your own `node:assert`, or anything else.
+
+The same call site means the same thing — an invariant — and is paid for only when something is listening. This routing-to-a-live-harness is the one new element vs. prior art (tiny-invariant, zertosh/invariant, unassert), which is always-on-or-stripped.
+
+## Install
+
+```bash
+npm install --save tape-six-invariant
+```
+
+`tape-six` is needed only to run the invariants as assertions, so it is not a dependency of this package. To run the test suite of this repo against the unreleased host hooks, `npm link` a local tape-six checkout (see the repository AGENTS.md).
+
+## API
+
+### check(cond, message?)
+
+```ts
+function check(cond: unknown, message?: string | (() => string)): asserts cond;
+```
+
+Records an invariant. It is the package's **default export** and also a named export — `import check from 'tape-six-invariant'` for the common single-import case, or `import {check, hasHost} from 'tape-six-invariant'` when pulling several symbols. Every other symbol is named-only.
+
+- `cond` — pass/fail verdict; a falsy value fails the invariant. Normalized with `!!` when reported.
+- `message` — failure message. May be a `() => string` thunk so an expensive message is built only when resolved.
+
+Behavior:
+
+- **Host present** — reports `{ok: !!cond, message, marker: new Error()}` to the host, which routes it to the current tester. The `marker` Error keeps the reported source location at the call site. The message thunk (if any) is resolved before reporting.
+- **No host** — on a falsy `cond`, runs the configured absent behavior with `(cond, resolvedMessage)`. A truthy `cond` is an early return: the only cost when off is one global-property read.
+
+The TypeScript `asserts cond` signature narrows the condition for callers.
+
+```js
+import check from 'tape-six-invariant';
+
+function area(w, h) {
+  check(w > 0 && h > 0, 'dimensions must be positive');
+  return w * h;
+}
+```
+
+### hasHost
+
+```ts
+const hasHost: boolean;
+```
+
+Import-time snapshot of whether a tape-six host was installed when this module loaded. Reliable because tape-six sets the slot at module load and test files import tape-six first; in pure production the slot is absent and `hasHost` is `false`.
+
+Use it to gate expensive pre-check computation:
+
+```js
+import {check, hasHost} from 'tape-six-invariant';
+
+if (hasHost) check(expensiveToCompute(), 'invariant holds');
+```
+
+Correctness never depends on the snapshot — `check()` reads the live slot per call.
+
+### setAbsentBehavior(fn)
+
+```ts
+type AbsentBehavior = (ok: unknown, message?: string) => void;
+function setAbsentBehavior(fn: AbsentBehavior): void;
+```
+
+Replaces the absent-path behavior — what a failing `check` does when no host is present. Pass a canned behavior or your own. A non-function argument resets to `inert`. Module-scoped: each copy of the library configures itself independently (only the host slot is global).
+
+```js
+import {setAbsentBehavior, throwOnFail} from 'tape-six-invariant';
+
+setAbsentBehavior(throwOnFail);
+
+// custom:
+setAbsentBehavior((ok, message) => {
+  if (!ok) metrics.increment('invariant.failed', {message});
+});
+```
+
+### Canned behaviors
+
+Exported functions passed to `setAbsentBehavior` (not magic strings):
+
+| Behavior            | Effect on a failing check       | Use                                    |
+| ------------------- | ------------------------------- | -------------------------------------- |
+| `inert` _(default)_ | nothing                         | ship invariants into prod at zero cost |
+| `throwOnFail`       | throw `InvariantError(message)` | fail-fast enforcement                  |
+| `warnOnFail`        | `console.warn`                  | non-fatal telemetry signal             |
+
+To defer to `node:assert` (or any other assertion library), bring your own import and pass it to `setAbsentBehavior`. There is no canned `nodeAssert` on purpose: a synchronous `check` should not dynamically import a module, and keeping the import on the caller's side leaves this package zero-dependency.
+
+```js
+import assert from 'node:assert';
+
+setAbsentBehavior((ok, message) => assert.ok(ok, message));
+```
+
+### InvariantError
+
+```ts
+class InvariantError extends Error {
+  constructor(message?: string);
+}
+```
+
+Thrown by `throwOnFail`. `name` is `'InvariantError'`; the default message is `'Invariant failed'`.
+
+## Coordination protocol
+
+The library and tape-six coordinate through a **versioned, Symbol-keyed slot on `globalThis`**:
+
+```js
+const KEY = Symbol.for('tape6.invariant.host.v1');
+```
+
+**Why a global rather than a module variable:** in production the dependency graph can contain several copies/versions of the library (npm does not always dedupe across version ranges). The coordination point must be shared across all copies — a `globalThis` slot is; a module-scoped variable is not. Same precedent as the React DevTools global hook.
+
+**tape-six sets the slot at module load** (not in `init()`), so `hasHost` is reliable — a test file imports tape-six first, so the slot exists before any code-under-test runs:
+
+```js
+globalThis[Symbol.for('tape6.invariant.host.v1')] ||= {
+  version: 1,
+  report(assertion) {
+    const tester = getTester(); // live current tester; null between/outside tests
+    if (tester) tester.reportAssertion(assertion);
+  }
+};
+```
+
+`||=` so the first-loaded tape-six copy wins (redundant copies are functionally identical).
+
+**Cross-realm:** `Symbol.for` is shared within a realm, but each realm (worker thread, iframe, subprocess) has its own `globalThis`. tape-six already runs per worker/process and isolates per realm, so each realm's load sets its own slot.
+
+The tape-six side provides three hooks that back this protocol: `getTester()` (innermost running tester or `null`), `Tester.reportAssertion({ok, message?, marker?, operator?, expected?, actual?})` (a marker-preserving report primitive), and the host slot itself.
+
+## Zero-overhead-when-off
+
+- The off path is one global-property read plus an early return; the marker `Error`, descriptor object, and message resolution happen only on the materialized or failing path.
+- The `hasHost` constant lets callers skip expensive pre-check work entirely when nothing is listening.
+- A `() => string` message thunk avoids building an expensive message unless it is needed.
+- `check` is a plain named import with a static, recognizable signature, so an unassert-style AST transform can delete the calls entirely in release builds.
+
+## Scope
+
+The API is deliberately minimal — predicate-only. The equality family (`deepEqual`, `match`, …) is **out of scope**: deep comparison needs an engine, which would force either a dependency or a silent shallow downgrade in production (the same invariant would mean different things in test vs. prod). A richer package can come later, forming richer descriptors for `reportAssertion`; this one stays predicate-only and zero-dependency.
+
+## Notes
+
+- ES modules only (`"type": "module"`); no CommonJS build, no transpilation.
+- Library, not a CLI — no `bin`. The whole implementation is the single root module `index.js`.
+- TypeScript types live in `index.d.ts` (the sole source of types and docs); `index.js` carries `// @ts-self-types="./index.d.ts"`.

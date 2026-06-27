@@ -1,0 +1,68 @@
+# tape-six-invariant
+
+> Zero-dependency invariant checks that materialize into real tape-six assertions under test, and are inert (or configurable) in production. Works in Node, Deno, Bun, and browsers. Never imports tape-six — coordinates through the global slot `Symbol.for('tape6.invariant.host.v1')`.
+
+## Install
+
+npm i tape-six-invariant
+
+## Quick start
+
+```js
+import check from 'tape-six-invariant';
+
+export function transfer(from, to, amount) {
+  check(amount > 0, 'amount must be positive');
+  check(from.currency === to.currency, 'currencies must match');
+}
+```
+
+Under a tape-six run each `check()` becomes a counted assertion on the current test. In production it runs the configured absent behavior (default: inert).
+
+## API
+
+### check(cond, message?)
+
+Records an invariant. The default export, also available as a named export (`import check from 'tape-six-invariant'` or `import {check} from 'tape-six-invariant'`). TypeScript signature: `(cond: unknown, message?: string | (() => string)) => asserts cond`.
+
+- `cond` — pass/fail verdict; a falsy value fails the invariant.
+- `message` — failure message, or a `() => string` thunk resolved only when needed.
+
+With a tape-six host present, reports `{ok, message, marker}` to the current test (source location at the call site). With no host, on failure runs the absent behavior; a passing check is a no-op.
+
+### hasHost
+
+`const hasHost: boolean` — import-time snapshot of whether a tape-six host was installed when the module loaded. Gate expensive pre-check computation: `if (hasHost) check(expensiveToCompute(), '…')`. Correctness never depends on it; `check` reads the live slot per call.
+
+### setAbsentBehavior(fn)
+
+Sets the absent-path behavior (what a failing `check` does with no host). `fn: (ok: unknown, message?: string) => void`. A non-function resets to `inert`. Module-scoped — each copy of the library configures itself.
+
+### Canned behaviors
+
+Exported functions to pass to `setAbsentBehavior`:
+
+- `inert` (default) — does nothing.
+- `throwOnFail` — throws `InvariantError`.
+- `warnOnFail` — `console.warn`.
+
+To defer to `node:assert` (or any other assertion library), bring your own import and pass it to `setAbsentBehavior` — it stays your dependency, not the package's: `setAbsentBehavior((ok, message) => assert.ok(ok, message))`.
+
+### InvariantError
+
+`class InvariantError extends Error` — thrown by `throwOnFail`. `name` is `'InvariantError'`; default message `'Invariant failed'`.
+
+## Coordination protocol
+
+- tape-six installs `globalThis[Symbol.for('tape6.invariant.host.v1')] = {version, report(assertion)}` at module load (`||=`, first copy wins).
+- `report` resolves the live current tester via tape-six's `getTester()` and forwards to `Tester.reportAssertion({ok, message?, marker?, operator?, expected?, actual?})`.
+- A global (not a module variable) so duplicate library copies in a dependency graph share one coordination point. Each realm (worker, iframe, subprocess) has its own slot.
+
+## Scope
+
+Predicate-only and zero-dep by design. The equality family (`deepEqual`, `match`, …) is out of scope — deep comparison needs an engine, which would force a dependency or env-divergent semantics.
+
+## Notes
+
+- ES modules only; no build step; TypeScript bindings in `index.d.ts`.
+- `check` is statically matchable so an unassert-style build transform can strip calls in release builds.

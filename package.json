@@ -1,0 +1,72 @@
+{
+  "name": "tape-six-invariant",
+  "version": "1.0.0",
+  "description": "Zero-dependency invariant checks that materialize into real tape-six assertions under test, and stay inert (or configurable) in production.",
+  "type": "module",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write .",
+    "test": "tape6 --flags FO",
+    "test:bun": "tape6-bun --flags FO",
+    "test:deno": "tape6-deno --flags FO",
+    "ts-check": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uhop/tape-six-invariant.git"
+  },
+  "keywords": [
+    "tape6",
+    "tape-six",
+    "invariant",
+    "invariants",
+    "assert",
+    "assertion",
+    "contract",
+    "design-by-contract",
+    "test",
+    "testing",
+    "unit-test",
+    "cross-runtime",
+    "nodejs",
+    "deno",
+    "bun",
+    "browser",
+    "esm",
+    "es-modules",
+    "typescript",
+    "zero-dependency"
+  ],
+  "author": "Eugene Lazutkin <eugene.lazutkin@gmail.com> (https://www.lazutkin.com/)",
+  "funding": "https://github.com/sponsors/uhop",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/uhop/tape-six-invariant/issues"
+  },
+  "homepage": "https://github.com/uhop/tape-six-invariant#readme",
+  "llms": "https://raw.githubusercontent.com/uhop/tape-six-invariant/main/llms.txt",
+  "llmsFull": "https://raw.githubusercontent.com/uhop/tape-six-invariant/main/llms-full.txt",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "llms.txt",
+    "llms-full.txt"
+  ],
+  "tape6": {
+    "tests": [
+      "/tests/test-*.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "prettier": "^3.8.3",
+    "tape-six": "^1.10.1",
+    "typescript": "^6.0.3"
+  }
+}
