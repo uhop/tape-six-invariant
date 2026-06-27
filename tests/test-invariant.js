@@ -1,5 +1,4 @@
 import test from 'tape-six';
-import assert from 'node:assert';
 
 import checkDefault from 'tape-six-invariant';
 import {
@@ -75,20 +74,6 @@ test('absent path runs the configured behavior', t => {
     setAbsentBehavior((ok, message) => seen.push([ok, message]));
     check(fail, () => 'thunked');
     t.deepEqual(seen, [[false, 'thunked']], 'custom behavior sees verdict + resolved message');
-  } finally {
-    globalThis[KEY] = real;
-    setAbsentBehavior(null);
-  }
-});
-
-test('a user-supplied behavior can defer to node:assert', t => {
-  const real = globalThis[KEY];
-  delete globalThis[KEY];
-  try {
-    setAbsentBehavior((ok, message) => assert.ok(ok, message));
-    check(pass, 'holds');
-    t.pass('a satisfied invariant passes through');
-    t.throws(() => check(fail, 'violated'), /violated/, 'a violated invariant throws');
   } finally {
     globalThis[KEY] = real;
     setAbsentBehavior(null);

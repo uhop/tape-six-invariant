@@ -28,6 +28,7 @@ cd ../tape-six-invariant && npm link tape-six
 - **Test (Node):** `npm test` (runs `tape6 --flags FO`)
 - **Test (Bun):** `npm run test:bun`
 - **Test (Deno):** `npm run test:deno`
+- **Type tests (Node/Bun/Deno):** `npm run ts-test` / `ts-test:bun` / `ts-test:deno` (runs the `.ts` typings smoke test)
 - **Lint:** `npm run lint` (Prettier check)
 - **Lint fix:** `npm run lint:fix` (Prettier write)
 - **TypeScript check:** `npm run ts-check`
@@ -39,11 +40,16 @@ tape-six-invariant/
 ├── index.js          # The whole library: check, hasHost, setAbsentBehavior, canned behaviors, InvariantError
 ├── index.d.ts        # TypeScript definitions for the public API (sole source of types + docs)
 ├── package.json      # Package config; "tape6" section configures test discovery
-├── tests/            # Test files (test-*.js) — consume tape-six
+├── tests/
+│   ├── test-invariant.js   # Functionality, runs on every platform (the "tests" category)
+│   ├── test-types.ts       # TS typings smoke test (run via ts-test; type-checked by ts-check)
+│   └── cli/                # CLI-only tests (the "cli" category: Node/Bun/Deno, not browser)
+│       ├── test-node-assert.js  # bring-your-own node:assert absent behavior
+│       └── test-cjs.cjs         # CommonJS (require) usage showcase
 └── wiki/             # GitHub wiki documentation (submodule)
 ```
 
-This is a **library, not a CLI** — it ships no `bin`. The entire implementation is a single root module (`index.js`); there is no `src/` and no build step.
+This is a **library, not a CLI** — it ships no `bin`. The entire implementation is a single root module (`index.js`); there is no `src/` and no build step. Test discovery splits into platform-universal (`tests`), CLI-only (`cli` — Node/Bun/Deno), and `.ts` typings (run via `ts-test`); the functionality tests live in JS, the `.ts` file exercises typings.
 
 ## Code style
 

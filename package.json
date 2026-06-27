@@ -15,6 +15,9 @@
     "test": "tape6 --flags FO",
     "test:bun": "tape6-bun --flags FO",
     "test:deno": "tape6-deno --flags FO",
+    "ts-test": "tape6 --flags FO 'tests/test-*.ts'",
+    "ts-test:bun": "tape6-bun --flags FO 'tests/test-*.ts'",
+    "ts-test:deno": "tape6-deno --flags FO 'tests/test-*.ts'",
     "ts-check": "tsc --noEmit"
   },
   "repository": {
@@ -61,6 +64,9 @@
   "tape6": {
     "tests": [
       "/tests/test-*.js"
+    ],
+    "cli": [
+      "/tests/cli/test-*.*js"
     ]
   },
   "devDependencies": {
