@@ -56,15 +56,14 @@ import {setAbsentBehavior, throwOnFail} from 'tape-six-invariant';
 setAbsentBehavior(throwOnFail); // a failing check now throws InvariantError
 ```
 
-Canned behaviors (exported functions, not magic strings):
+With no behavior set — the default — a failing check is a no-op. Canned behaviors (exported functions, not magic strings):
 
-| Behavior            | Effect on a failing check |
-| ------------------- | ------------------------- |
-| `inert` _(default)_ | nothing                   |
-| `throwOnFail`       | throw `InvariantError`    |
-| `warnOnFail`        | `console.warn`            |
+| Behavior      | Effect on a failing check |
+| ------------- | ------------------------- |
+| `throwOnFail` | throw `InvariantError`    |
+| `warnOnFail`  | `console.warn`            |
 
-Or pass your own `(ok, message) => void` — for instance, to defer to `node:assert`, bring your own import so it stays your dependency, not the package's:
+`setAbsentBehavior(null)` (or any non-function) clears a previously set behavior. Or pass your own `(ok, message) => void` — for instance, to defer to `node:assert`, bring your own import so it stays your dependency, not the package's:
 
 ```js
 import assert from 'node:assert';
@@ -98,8 +97,8 @@ See the [wiki](https://github.com/uhop/tape-six-invariant/wiki) for full docs. `
 
 - `check(cond, message?)` — record an invariant. `message` may be a string or a `() => string` thunk. TypeScript signature is `asserts cond`.
 - `hasHost` — import-time boolean: was a tape-six host present at load?
-- `setAbsentBehavior(fn)` — set the no-host failure behavior (default `inert`).
-- `inert`, `throwOnFail`, `warnOnFail` — canned absent behaviors.
+- `setAbsentBehavior(fn)` — set the no-host failure behavior; `null` clears it (default: none, a no-op).
+- `throwOnFail`, `warnOnFail` — canned absent behaviors.
 - `InvariantError` — thrown by `throwOnFail`.
 
 ## Related packages
@@ -110,7 +109,7 @@ See the [wiki](https://github.com/uhop/tape-six-invariant/wiki) for full docs. `
 
 ## Release notes
 
-- **1.0.0** — Initial release: `check`, `hasHost`, `setAbsentBehavior`, canned behaviors (`inert`/`throwOnFail`/`warnOnFail`), `InvariantError`.
+- **1.0.0** — Initial release: `check`, `hasHost`, `setAbsentBehavior`, canned behaviors (`throwOnFail`/`warnOnFail`), `InvariantError`.
 
 ## License
 

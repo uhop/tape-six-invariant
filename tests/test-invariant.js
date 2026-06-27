@@ -6,7 +6,6 @@ import {
   check,
   hasHost,
   setAbsentBehavior,
-  inert,
   throwOnFail,
   warnOnFail,
   InvariantError
@@ -49,9 +48,10 @@ test('absent path runs the configured behavior', t => {
   const real = globalThis[KEY];
   delete globalThis[KEY];
   try {
-    setAbsentBehavior(inert);
+    setAbsentBehavior(throwOnFail);
+    setAbsentBehavior(null);
     check(fail, 'swallowed');
-    t.pass('inert swallows failing checks');
+    t.pass('clearing the behavior with null swallows failing checks');
 
     setAbsentBehavior(throwOnFail);
     t.throws(() => check(fail, 'boom'), /boom/, 'throwOnFail throws on failure');
@@ -77,7 +77,7 @@ test('absent path runs the configured behavior', t => {
     t.deepEqual(seen, [[false, 'thunked']], 'custom behavior sees verdict + resolved message');
   } finally {
     globalThis[KEY] = real;
-    setAbsentBehavior(inert);
+    setAbsentBehavior(null);
   }
 });
 
@@ -91,7 +91,7 @@ test('a user-supplied behavior can defer to node:assert', t => {
     t.throws(() => check(fail, 'violated'), /violated/, 'a violated invariant throws');
   } finally {
     globalThis[KEY] = real;
-    setAbsentBehavior(inert);
+    setAbsentBehavior(null);
   }
 });
 

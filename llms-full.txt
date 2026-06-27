@@ -22,7 +22,7 @@ export function transfer(from, to, amount) {
 ```
 
 - **Under a tape-six run** (the code is exercised by a test): each `check()` becomes a counted assertion on the _current_ test — in the plan, in TAP output, with source location pointing at the `check()` call site.
-- **In production** (no tape-six): a configurable behavior. Default **inert**. Overridable to throw, warn, defer to your own `node:assert`, or anything else.
+- **In production** (no tape-six): a configurable behavior. Default is none — a failing check is a no-op. Overridable to throw, warn, defer to your own `node:assert`, or anything else.
 
 The same call site means the same thing — an invariant — and is paid for only when something is listening. This routing-to-a-live-harness is the one new element vs. prior art (tiny-invariant, zertosh/invariant, unassert), which is always-on-or-stripped.
 
@@ -88,7 +88,7 @@ type AbsentBehavior = (ok: unknown, message?: string) => void;
 function setAbsentBehavior(fn: AbsentBehavior): void;
 ```
 
-Replaces the absent-path behavior — what a failing `check` does when no host is present. Pass a canned behavior or your own. A non-function argument resets to `inert`. Module-scoped: each copy of the library configures itself independently (only the host slot is global).
+Replaces the absent-path behavior — what a failing `check` does when no host is present. Pass a canned behavior or your own. The default is none (a failing check is a no-op); passing `null` or any non-function clears a set behavior. Module-scoped: each copy of the library configures itself independently (only the host slot is global).
 
 ```js
 import {setAbsentBehavior, throwOnFail} from 'tape-six-invariant';
@@ -103,13 +103,12 @@ setAbsentBehavior((ok, message) => {
 
 ### Canned behaviors
 
-Exported functions passed to `setAbsentBehavior` (not magic strings):
+Exported functions passed to `setAbsentBehavior` (not magic strings). With none set — the default — a failing check is a no-op:
 
-| Behavior            | Effect on a failing check       | Use                                    |
-| ------------------- | ------------------------------- | -------------------------------------- |
-| `inert` _(default)_ | nothing                         | ship invariants into prod at zero cost |
-| `throwOnFail`       | throw `InvariantError(message)` | fail-fast enforcement                  |
-| `warnOnFail`        | `console.warn`                  | non-fatal telemetry signal             |
+| Behavior      | Effect on a failing check       | Use                        |
+| ------------- | ------------------------------- | -------------------------- |
+| `throwOnFail` | throw `InvariantError(message)` | fail-fast enforcement      |
+| `warnOnFail`  | `console.warn`                  | non-fatal telemetry signal |
 
 To defer to `node:assert` (or any other assertion library), bring your own import and pass it to `setAbsentBehavior`. There is no canned `nodeAssert` on purpose: a synchronous `check` should not dynamically import a module, and keeping the import on the caller's side leaves this package zero-dependency.
 

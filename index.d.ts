@@ -19,13 +19,11 @@ export declare function check(cond: unknown, message?: string | (() => string)):
 export declare const hasHost: boolean;
 
 /**
- * Sets the absent-path behavior (default {@link inert}).
+ * Sets the absent-path behavior. Pass `null` (or any non-function) to clear it;
+ * with none set — the default — a failing {@link check} with no host is a no-op.
  * @see https://github.com/uhop/tape-six-invariant/wiki/API#setabsentbehavior
  */
-export declare function setAbsentBehavior(fn: AbsentBehavior): void;
-
-/** Absent behavior (default): do nothing. */
-export declare const inert: AbsentBehavior;
+export declare function setAbsentBehavior(fn: AbsentBehavior | null): void;
 
 /** Absent behavior: throw {@link InvariantError} on failure. */
 export declare const throwOnFail: AbsentBehavior;

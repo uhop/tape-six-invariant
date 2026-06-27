@@ -6,12 +6,10 @@ const resolveMessage = message => (typeof message === 'function' ? message() : m
 
 export const hasHost = !!globalThis[KEY];
 
-export const inert = () => {};
-
-let absentBehavior = inert;
+let absentBehavior = null;
 
 export const setAbsentBehavior = fn => {
-  absentBehavior = typeof fn === 'function' ? fn : inert;
+  absentBehavior = typeof fn === 'function' ? fn : null;
 };
 
 export class InvariantError extends Error {
@@ -32,13 +30,14 @@ export const warnOnFail = (ok, message) => {
   if (!ok) console.warn('Invariant failed' + (message ? ': ' + message : ''));
 };
 
-export function check(cond, message) {
+export const check = (cond, message) => {
   const host = globalThis[KEY];
   if (host) {
     host.report({ok: !!cond, message: resolveMessage(message), marker: new Error()});
     return;
   }
+  if (!absentBehavior) return;
   if (!cond) absentBehavior(cond, resolveMessage(message));
-}
+};
 
 export default check;

@@ -17,7 +17,7 @@ export function transfer(from, to, amount) {
 }
 ```
 
-Under a tape-six run each `check()` becomes a counted assertion on the current test. In production it runs the configured absent behavior (default: inert).
+Under a tape-six run each `check()` becomes a counted assertion on the current test. In production it runs the configured absent behavior, if any; by default none is set, so a failing check is a no-op.
 
 ## API
 
@@ -36,13 +36,12 @@ With a tape-six host present, reports `{ok, message, marker}` to the current tes
 
 ### setAbsentBehavior(fn)
 
-Sets the absent-path behavior (what a failing `check` does with no host). `fn: (ok: unknown, message?: string) => void`. A non-function resets to `inert`. Module-scoped — each copy of the library configures itself.
+Sets the absent-path behavior (what a failing `check` does with no host). `fn: (ok: unknown, message?: string) => void`. Passing `null` or any non-function clears it; the default is none (a failing check is a no-op). Module-scoped — each copy of the library configures itself.
 
 ### Canned behaviors
 
-Exported functions to pass to `setAbsentBehavior`:
+Exported functions to pass to `setAbsentBehavior` (the default is none — a no-op):
 
-- `inert` (default) — does nothing.
 - `throwOnFail` — throws `InvariantError`.
 - `warnOnFail` — `console.warn`.
 

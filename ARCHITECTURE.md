@@ -50,7 +50,7 @@ check(cond, message)
 
 ## Behaviors
 
-The absent path (no host) is governed by a single replaceable function, `absentBehavior`, defaulting to `inert`. `setAbsentBehavior(fn)` swaps it. Canned behaviors are ordinary exported functions — `inert`, `throwOnFail`, `warnOnFail` — not env-flag-selected modes, so a user can supply any `(ok, message) => void` (throw, log, sample, increment a metric). Deferring to `node:assert` is intentionally left to the caller (`setAbsentBehavior((ok, message) => assert.ok(ok, message))`): a synchronous `check` should not dynamically import a module, and keeping the import caller-side preserves the zero-dependency guarantee.
+The absent path (no host) is governed by a single replaceable slot, `absentBehavior`, which starts unset (`null`) — a failing check with no host is then a no-op, and `check` skips even resolving the message. `setAbsentBehavior(fn)` installs one; `setAbsentBehavior(null)` (or any non-function) clears it. Canned behaviors are ordinary exported functions — `throwOnFail`, `warnOnFail` — not env-flag-selected modes, so a user can supply any `(ok, message) => void` (throw, log, sample, increment a metric). Deferring to `node:assert` is intentionally left to the caller (`setAbsentBehavior((ok, message) => assert.ok(ok, message))`): a synchronous `check` should not dynamically import a module, and keeping the import caller-side preserves the zero-dependency guarantee.
 
 ## Design boundaries
 
