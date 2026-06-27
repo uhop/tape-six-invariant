@@ -32,6 +32,7 @@ cd ../tape-six-invariant && npm link tape-six
 - **Lint:** `npm run lint` (Prettier check)
 - **Lint fix:** `npm run lint:fix` (Prettier write)
 - **TypeScript check:** `npm run ts-check`
+- **JS lint check (optional):** `npm run js-check` (`tsc --project tsconfig.check.json` — `checkJs` lint for unused/undeclared variables, `strict: false`; not a type check — use `ts-check` for types)
 
 ## Project structure
 
