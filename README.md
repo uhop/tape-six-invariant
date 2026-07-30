@@ -93,7 +93,7 @@ check(list.every(valid), () => `invalid items: ${list.filter(x => !valid(x)).joi
 
 ## API
 
-See the [wiki](https://github.com/uhop/tape-six-invariant/wiki) for full docs. `check` is the default export (and a named export); everything else is named-only.
+Full documentation is in the **[wiki](https://github.com/uhop/tape-six-invariant/wiki)** &mdash; browse the [index](https://github.com/uhop/tape-six-invariant/wiki/Home), or [search it](https://uhop.github.io/wiki-search/app/?wiki=uhop/tape-six-invariant) by name. `check` is the default export (and a named export); everything else is named-only.
 
 - `check(cond, message?)` — record an invariant. `message` may be a string or a `() => string` thunk. TypeScript signature is `asserts cond`.
 - `hasHost` — import-time boolean: was a tape-six host present at load?

@@ -15,12 +15,7 @@ npm install
 
 The only `--recursive` submodule is the `wiki/`. There is no build step.
 
-**Tests need a tape-six that exports the invariant host hooks** (`getTester`, `Tester.reportAssertion`, the `globalThis` slot). Until a tape-six release carries them, link a local checkout:
-
-```bash
-cd ../tape-six && npm link            # register the local build once
-cd ../tape-six-invariant && npm link tape-six
-```
+Tests use the **invariant host hooks** (`getTester`, `Tester.reportAssertion`, the `globalThis` slot) that tape-six ships since 1.11.0 — the regular `tape-six` devDependency covers them.
 
 ## Commands
 

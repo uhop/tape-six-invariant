@@ -12,7 +12,7 @@ cd tape-six-invariant
 npm install
 ```
 
-There is no build step. Running the tests needs a tape-six that exports the invariant host hooks — until a release carries them, `npm link` a local checkout (see [AGENTS.md](./AGENTS.md) § Setup).
+There is no build step. The `tape-six` devDependency (1.11.0+) ships the invariant host hooks the tests need.
 
 ## Development workflow
 
@@ -28,6 +28,13 @@ There is no build step. Running the tests needs a tape-six that exports the inva
 - Zero runtime dependencies — do not add any.
 - Never import tape-six; coordinate only through the global protocol slot.
 - Keep `index.js` and `index.d.ts` in sync.
+
+## License
+
+This project is distributed under the [BSD-3-Clause license](./LICENSE).
+External contributions are accepted only under licenses compatible with
+BSD-3-Clause; submissions under fundamentally incompatible licenses cannot
+be merged.
 
 ## AI agents
 

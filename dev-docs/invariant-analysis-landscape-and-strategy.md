@@ -6,7 +6,7 @@ and dynamic invariant analysis, design-by-contract, and lightweight verification
 `tape-six-invariant` fits and should head. This is a foundation to argue from,
 not a committed plan.
 
-Companion reading: the blog post *Loop and `if` invariants* (the argument this
+Companion reading: the blog post _Loop and `if` invariants_ (the argument this
 operationalizes) and this repo's [ARCHITECTURE.md](../ARCHITECTURE.md) (the
 current design). External claims here were gathered and adversarially verified in
 a focused research pass; primary sources are cited inline.
@@ -41,7 +41,7 @@ production. Predicate-only; build-strippable (a static `check` signature for an
 unassert-style transform); never imports tape-six.
 
 That places it in the **design-by-contract lineage**, but with a twist no other
-JS/TS library has: the check routes into a *live test harness* as a first-class
+JS/TS library has: the check routes into a _live test harness_ as a first-class
 assertion. The rest of this doc positions that against the field.
 
 ## 3. The landscape
@@ -58,7 +58,7 @@ assertion. The rest of this doc positions that against the field.
 - **Rust `contracts` crate** (the closest structural sibling): `#[requires]`/
   `#[ensures]`/`#[invariant]`, with **`#[debug_*]`** variants stripped from
   release builds and **`#[test_*]`** variants (`cfg!(test)`-guarded) that
-  materialize *only under a test run* — structurally the same idea as
+  materialize _only under a test run_ — structurally the same idea as
   tape-six-invariant's test-run materialization, minus the live-harness routing.
 - **clojure.spec**: a function is an args-spec (precondition) + ret-spec
   (postcondition) + optional fn-spec (relation); `instrument` swaps in a
@@ -73,7 +73,7 @@ languages; JS has only libraries, and none integrate with a test runner.
 
 - **tiny-invariant** (~74M downloads/week — the adoption bar): zero-dep
   `invariant(cond, message)`; TypeScript/Flow **type narrowing** on a passing
-  check. **Correction from research:** it is *not* inert in production — it
+  check. **Correction from research:** it is _not_ inert in production — it
   **throws in both dev and production**; production only **strips the message**
   to `"Invariant failed"` (delegated to `babel-plugin-dev-expression` / tsdx /
   rollup-replace). This is a genuine differentiator for us: our **inert-by-default
@@ -87,7 +87,7 @@ languages; JS has only libraries, and none integrate with a test runner.
   as a compile-time type). This is the "richer predicate surface" direction our
   ARCHITECTURE explicitly defers ("a richer sibling can form fuller
   `reportAssertion` descriptors later").
-- **babel-plugin-unassert** (the strip *mechanism*): removes `assert` /
+- **babel-plugin-unassert** (the strip _mechanism_): removes `assert` /
   `console.assert` / power-assert / `invariant` / `nanoassert` / `uvu/assert`
   calls **and their imports** at build time. Our build-strippability should
   target/align with the unassert ecosystem rather than invent a new marker.
@@ -95,14 +95,14 @@ languages; JS has only libraries, and none integrate with a test runner.
 ### 3.3 TypeScript as a lightweight-invariant substrate (the near-term lever)
 
 - **TS 3.7 assertion signatures**: a function typed `function check(cond, msg?):
-  asserts cond` **narrows types for the rest of the scope**. This is exactly the
-  signature `check()` should carry so that a passing check is a *compiler-
-  recognized* invariant — static narrowing *and* runtime materialization in one
+asserts cond` **narrows types for the rest of the scope**. This is exactly the
+  signature `check()` should carry so that a passing check is a _compiler-
+  recognized_ invariant — static narrowing _and_ runtime materialization in one
   call. `asserts val is T` covers type-refinement; a `never` return models
   halting/exhaustiveness helpers. The blog already notes TS narrowing / assertion
   signatures / the `never`-exhaustiveness trick as "invariants for free."
 - **Refined TypeScript (RSC)** (research, 2016): refinement types (types +
-  logical predicates) with static verification of higher-order *imperative* TS,
+  logical predicates) with static verification of higher-order _imperative_ TS,
   evaluated on Octane/D3/the TS compiler — proof that refinement types are viable
   for TS, but it is research-grade, not productized.
 - **Hegel** (a sound JS type checker): **archived Jan 2024, dead.** The negative
@@ -110,7 +110,7 @@ languages; JS has only libraries, and none integrate with a test runner.
 
 ### 3.4 Dynamic invariant inference (the Daikon path — an open opportunity)
 
-- **Daikon** (the flagship, mature): infers *likely* invariants from execution
+- **Daikon** (the flagship, mature): infers _likely_ invariants from execution
   traces (constants, ranges, linear relations, ordering, nullness, sortedness,
   containment). Front-ends exist for C/C++/C#/Eiffel/F#/Java/Perl/VB — **not
   JavaScript or TypeScript.** Accuracy is bounded by test-suite completeness;
@@ -122,9 +122,9 @@ languages; JS has only libraries, and none integrate with a test runner.
   JS inference is possible but unsound and expensive → must be test/dev-only and
   stripped.
 
-**The opportunity:** there is no Daikon for JS/TS, and tape-six *already runs the
-executions* Daikon needs as traces. A test run that observes values flowing
-through `check`-instrumented (or plain) code could emit *suggested* invariants
+**The opportunity:** there is no Daikon for JS/TS, and tape-six _already runs the
+executions_ Daikon needs as traces. A test run that observes values flowing
+through `check`-instrumented (or plain) code could emit _suggested_ invariants
 — the raw material for `check()` calls or JSDoc contracts. Nobody has built this
 for JS.
 
@@ -138,14 +138,14 @@ for JS.
 - **Dafny / SMT (2025):** proof/annotation code can be an **order of magnitude
   larger** than the implementation; auto-active verifiers stay sparsely used;
   proofs are **brittle** (a Z3 version bump or a different machine can break a
-  passing proof). *But* the same work notes formal specs enable precise
+  passing proof). _But_ the same work notes formal specs enable precise
   **change-impact analysis** (the blog's "missing reasoner" — a failing spec
   after a change tells you what broke), and proposes **tests as a proof proxy**
   (lemmas → tests) and **auto-generating library contracts from tests** (Daikon
   lineage) as the pragmatic shortcut.
 
 That last point is the strategic endorsement: the tests-as-proof-proxy middle
-path *is* tape-six-invariant's model.
+path _is_ tape-six-invariant's model.
 
 ### 3.6 AI/LLM as the "missing reasoner" (the blog's explicit bet)
 
@@ -156,7 +156,7 @@ path *is* tape-six-invariant's model.
   compromise soundness. It solved 25/47 hard SV-COMP benchmarks where
   state-of-the-art solvers each solved 1. (C only — the methodology transfers.)
 - **LLM loop-invariant study** (Nov 2025): LLMs reach ~78% success at
-  *generating* loop invariants but only ~16% at *repairing* incorrect ones, and
+  _generating_ loop invariants but only ~16% at _repairing_ incorrect ones, and
   do markedly better with domain knowledge + examples in the prompt.
 
 Takeaway: the blog's "hand it to an AI agent" is a real, published architecture —
@@ -176,13 +176,13 @@ are **inert-by-default** in production (Eiffel's monitoring-level stance), and
 
 ### 4.2 Genuine differentiators (defend these)
 
-1. **Inert-by-default no-op.** tiny-invariant and ts-invariant *always throw*;
+1. **Inert-by-default no-op.** tiny-invariant and ts-invariant _always throw_;
    we default to nothing. That is a different, deliberate contract — a `check`
    embedded in production library code costs one property read when no host and
    no behavior are set.
 2. **Materializes into a running test as a counted assertion.** No other JS/TS
    library routes a production-embeddable check into a live harness. The Rust
-   `#[test_*]` contract is the closest structural analogue and it is *not*
+   `#[test_*]` contract is the closest structural analogue and it is _not_
    harness-integrated. This is the moat.
 
 ### 4.3 Near-term, actionable (cheap, high-value)
@@ -201,7 +201,7 @@ are **inert-by-default** in production (Eiffel's monitoring-level stance), and
 
 - **A "Daikon for JS," powered by tape-six runs.** Test executions are exactly
   the traces dynamic invariant inference needs, and no such tool exists for
-  JS/TS. Observe values during a run and emit *suggested* likely-invariants as
+  JS/TS. Observe values during a run and emit _suggested_ likely-invariants as
   `check()` calls or JSDoc — unsound (a suggestion, not a proof), test-only,
   stripped. A natural sibling to the harness.
 - **The "ship invariants with the function" gap.** No JS prior art for attaching
@@ -209,9 +209,9 @@ are **inert-by-default** in production (Eiffel's monitoring-level stance), and
   encoding invariants at the TypeScript declaration level or as structured JSDoc
   the harness (or an agent) can read back.
 - **The "missing reasoner" = an AI agent, done LEMUR-style.** An agent that,
-  across a change and its dependents, *proposes* the contradictions a change
+  across a change and its dependents, _proposes_ the contradictions a change
   induces, with **tests and types as the sound oracle** (assume-until-proven).
-  This is the *same* agent-proposes/oracle-verifies architecture as the code-
+  This is the _same_ agent-proposes/oracle-verifies architecture as the code-
   transformation "moonshot" (see `tape-six/dev-docs/` once written) — the
   invariants library and that tool share a spine, and tape-six is the practical
   oracle in both.
